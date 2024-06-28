@@ -1,0 +1,27 @@
+.bg-mov{
+    background-color: rgba(255,89,90,1) !important;
+    display: block !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.img-head{
+    width: 400px !important;
+    height: auto !important;
+}
+
+.button-box{
+    background-color: rgba(255,89,90,1) !important;
+    height: 200px !important;
+    width: 200px !important;
+    border-radius: 15px !important;
+}
+
+.btn-submit-mov{
+    background-color: rgba(255,89,90,1) !important;
+}
+
+.bg-card-mov{
+    background-color: rgba(255,89,90,1) !important;
+    border-radius: 15px !important;
+}

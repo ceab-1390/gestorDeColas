@@ -1,0 +1,14 @@
+<div class="row">
+    <h1 id="oficina" class="d-none"><%=oficina%></h1>
+    <%servicios.forEach(servicio => {%>
+        <div class="col-sm-3 mt-3">
+            <div class="card bg-card-mov">
+                <h3 class="text-center card-title text-white"><%=servicio.descripcion%></h3>
+                <div class="card-body">
+                    <h1 class="text-center text-white" id="<%=servicio._id%>"></h1>
+                </div>
+            </div>
+        </div>
+    <%})%>
+
+</div>

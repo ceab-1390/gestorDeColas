@@ -1,0 +1,12 @@
+<div class="row">
+    <%let client = JSON.parse(cliente)%>
+    <h1 class="text-center mt-3"><%=client.cedula%></h1>
+    <%servicios.forEach(servicio =>{%>
+        <div class="col-sm-3 text-center">
+            <div class="mt-3">
+                <button type="button" class="btn button-box text-white shadow-lg" onclick="atachCola('<%=servicio.codigo%>','<%=cliente%>')"><%=servicio.descripcion%></button>
+            </div>
+        </div>
+    <%})%>
+
+</div>

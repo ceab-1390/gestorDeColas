@@ -1,0 +1,33 @@
+{
+  "name": "gestordecolas",
+  "version": "1.0.0",
+  "description": "Sistema para gestionar las filas de la empresa movilnet.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"test OK\"",
+    "start": "node --watch app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ceab-1390/gestorDeColas.git"
+  },
+  "author": "Daniela Araujo y Cesar Avila",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/ceab-1390/gestorDeColas/issues"
+  },
+  "homepage": "https://github.com/ceab-1390/gestorDeColas#readme",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "bootstrap": "^5.3.3",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-ejs-layouts": "^2.5.1",
+    "express-session": "^1.18.0",
+    "mongoose": "^8.4.4",
+    "sweetalert2": "^11.12.0",
+    "uuid": "^10.0.0",
+    "ws": "^8.17.1"
+  }
+}

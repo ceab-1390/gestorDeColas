@@ -1,0 +1,22 @@
+
+<div class="row">
+    <div class="col-sm-12 text-center">
+        <div class="mt-3">
+            <button type="button" id="agenteButton" value="<%=cliente  != null  ? cliente.id : ''%>" class="btn button-box text-white shadow-lg" onclick="tomarTicket(this)"><%=cliente != null ? cliente.ticket : ''%></button>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <h1 id="agente" class="d-none"><%=agente%></h1>
+    <div class="col-sm-6 text-center">
+        <div class="mt-3">
+            <button type="button" id="atendido" class="btn button-box text-white shadow-lg" onclick="cerrarAnular(this,'cerrar')">Cerrar </button>
+        </div>
+    </div>
+    <div class="col-sm-6 text-center">
+        <div class="mt-3">
+            <button type="button" id="anular" class="btn button-box text-white shadow-lg" onclick="cerrarAnular(this,'anular')">Anular</button>
+        </div>
+    </div>
+</div>
+
