@@ -80,6 +80,7 @@ module.exports.tomarTicket = async (req,res) => {
         let atencion = await Cliente.updateOneStatus(id,'atendiendo');
         res.status(200).json({status:true});
         process.emit('ticket',{ticket:true});
+        process.emit('agente',{ticket:true})
     }else{
         console.log('Sin acciones');
         res.status(200).json({status:false});
@@ -130,7 +131,9 @@ module.exports.secuenciaColas = async (req,res) =>{
     process.on('atendido', (item)=>{
         Busqueda();
     })
-
+    process.on('agente', (item)=>{
+        Busqueda();
+    })
 };
 
 module.exports.siguienteNumero = async (req,res) =>{

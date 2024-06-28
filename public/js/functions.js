@@ -115,6 +115,8 @@ if(location.pathname === '/agente'){
 async function tomarTicket (id){
   let atender = document.getElementById('atendido');
   let anular = document.getElementById('anular');
+  atender.innerHTML = '';
+  anular.innerHTML = '';
   atender.innerHTML = 'Cerrar: '+ id.innerHTML;
   anular.innerHTML = 'Anular: '+ id.innerHTML;
   atender.value = id.value;

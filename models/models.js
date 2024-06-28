@@ -113,7 +113,7 @@ class Cliente{
     static async findPrimeroEnCola(n){
         console.log()
         try {
-            const clientes = await clienteModel.findOne({status:'espera',servicio:n}).sort({_id: 1});
+            const clientes = await clienteModel.findOne({status:'atendiendo',servicio:n}).sort({_id: 1});
             return clientes;
         } catch (error) {
             console.error(new Error(error));
