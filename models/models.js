@@ -1,5 +1,29 @@
 const { mongo, default: mongoose,Schema } = require('./db');
 
+const agenteSchema = new mongoose.Schema({
+    nombre: {
+        type: String,
+        unique: false,
+        required: true,
+    },
+    apellido:{
+        type: String,
+        required: true,
+        unique: false,
+    },
+    p00: {
+        type: String,
+        unique: true,
+        required: true,  
+    }
+},{
+    timestamps: true
+},{
+    collection: "agentes"
+} );
+
+const agenteModel = new mongoose.model('egentes',agenteSchema);
+
 
 const servicioSchema = new mongoose.Schema({
     descripcion: {
@@ -41,6 +65,11 @@ const clienteSchema = new mongoose.Schema({
         type: Schema.Types.ObjectId,
         required: false,
         ref: servicioModel,
+    },
+    agenteId: {
+        type: Schema.Types.ObjectId,
+        required: false,
+        ref: agenteModel,
     },
     ticket: {
         type: String,
@@ -130,13 +159,14 @@ class Cliente{
             return false;
         }
     };
-    static async updateOneStatus(id,status){
+    static async updateOneStatus(id,status,agente){
         console.log(id)
         try {
             const up = await clienteModel.updateOne(
                 {_id:id},
                 {$set:{
-                    status: status
+                    status: status,
+                    agenteId: agente
                     }
                 }
             )
@@ -145,7 +175,33 @@ class Cliente{
             console.error(error);
             return false
         }
-    }
+    };
+    static async updateOneStatusOnReload(status,agente){
+        console.log(agente)
+        try {
+            const up = await clienteModel.updateMany(
+                {agenteId:agente},
+                {$set:{
+                    status: status,
+                    }
+                }
+            )
+            return true;
+        } catch (error) {
+            console.error(error);
+            return false
+        }
+    };
+    static async findOne(n){
+        console.log(n)
+        try {
+            const cliente = await clienteModel.findOne({_id:n}).populate('agenteId');
+            return cliente;
+        } catch (error) {
+            console.error(new Error(error));
+            return false;
+        }
+    };
 };
 
 class Servicios{
@@ -167,7 +223,28 @@ class Servicios{
             return false;
         }
     }; 
-}
+};
+
+class Agente{
+    static async show(){
+        try {
+            const agente = await agenteModel.find();
+            return agente;
+        } catch (error) {
+            console.error(new Error(error));
+            return false;
+        }
+    };
+    static async findOneP00(p00){
+        try {
+            const agente = await agenteModel.findOne({p00:p00});
+            return agente;
+        } catch (error) {
+            console.error(new Error(error));
+            return false;
+        }
+    };
+};
 
 
 async function seed(){
@@ -193,15 +270,30 @@ async function seed(){
             codigo: 'RB',
         },
     ];
+
+    dataAgente = [
+        {
+            nombre: 'Daniela',
+            apellido: 'Araujo',
+            p00: '212951'
+        }
+    ]
     const valid = await servicioModel.find();
     if(valid.length != 0){
         console.log('Servicios ya existen')
     }else{
         await servicioModel.insertMany(dataServices);
+    };
+
+    const validAgente = await agenteModel.find();
+    if(validAgente.length != 0){
+        console.log('Agente ya existen')
+    }else{
+        await agenteModel.insertMany(dataAgente);
     }
 }
 
 seed();
 
 
-module.exports = {Cliente,Servicios}
+module.exports = {Cliente,Servicios,Agente}

@@ -1,5 +1,33 @@
-const {clients} = require('./ws');
-const {Cliente,Servicios} = require('../models/models');
+const {Cliente,Servicios,Agente} = require('../models/models');
+const {bot} = require('./telegram');
+require('dotenv').config()
+const {WebSocket} = require('ws'); 
+
+const socket = new WebSocket.Server({port: process.env.WS_PORT},()=>{
+    console.log('WebSocket start on '+process.env.WS_PORT)
+})
+
+const clients = {};
+const comand = {};
+let clientId; 
+
+socket.on('connection', (ws,req) =>{
+    console.log('Nueva conexion al websocket')
+    ws.on('message', data =>{
+        data = JSON.parse(data);
+        clientId = data.id
+        console.log('Cliente: '+ clientId)
+        clients[clientId] = ws;
+        clients[clientId].nombre = clientId;
+    });
+    ws.onerror = function (err){
+        console.log(err)
+    }
+    ws.on('close', ()=>{
+        delete clients[clientId]
+        console.log('Conexion del cliente ' +clientId+' cerrada');
+    });
+});   
 
 
 module.exports.index = (req,res)=>{
@@ -43,6 +71,7 @@ module.exports.genTicket = async (req,res)=>{
     let dataCliente = data;
     dataCliente.servicio = servicio;
     dataCliente.ticket = ticket;
+    console.log('El ticket: '+dataCliente.ticket);
     dataCliente.tiempo_espera = tiempo_espera;
     let nuevoTicket = await Cliente.creteOne(dataCliente); 
     if(nuevoTicket){
@@ -59,28 +88,56 @@ module.exports.ticket = (req,res)=>{
 };
 
 module.exports.agente = async (req,res) =>{
-    req.session.agente = 'agente1';
-    let agente = await req.session.agente
+    let agente = await Agente.findOneP00('212951');
+    req.session.agente = agente.nombre;
+    req.session.p00 = agente.p00;
+    let updateTicketsOld = await Cliente.updateOneStatusOnReload('atendido',agente._id);
+    console.log(updateTicketsOld);
     let cliente = await Cliente.findPrimeroEnColaAgente();
     res.render('agente',{agente: req.session.agente,cliente});
     async function Busqueda(){
-        cliente = await Cliente.findPrimeroEnColaAgente();
-        clients[agente].send(JSON.stringify(cliente))
-        return cliente
+        try {
+            cliente = await Cliente.findPrimeroEnColaAgente();
+            Object.values(clients).forEach(client =>{
+                if(client.nombre == agente.nombre){
+                    console.log('el websocket es: '+agente.nombre);
+                    //console.log(client);
+                    client.send(JSON.stringify(cliente))
+                }
+            })
+            //clients[agente.nombre].send(JSON.stringify(cliente))
+            return cliente 
+        } catch (error) {
+            console.log(error);
+        }
+    
     }
 
     process.on('ticket', (item)=>{
+
         Busqueda();
-    })
+    });
+    process.on('atendido', (item)=>{
+        console.log('Ejecutando busqueda luego de atencion')
+        Busqueda();
+    });
+
+    console.log(agente);
+    console.log(req.session)
 };
 
 module.exports.tomarTicket = async (req,res) => {
+
+    let agente = await Agente.findOneP00(req.session.p00);
     const id = req.body.ticket.length != 0 ? req.body.ticket : 0;
     if (id != 0){
-        let atencion = await Cliente.updateOneStatus(id,'atendiendo');
+        let atencion = await Cliente.updateOneStatus(id,'atendiendo',agente._id);
         res.status(200).json({status:true});
         process.emit('ticket',{ticket:true});
-        process.emit('agente',{ticket:true})
+        process.emit('agente',{ticket:true});
+        const ticket = await Cliente.findOne(id);
+        console.log(ticket)
+        bot.telegram.sendMessage('@GestorColasMovilnet','EL tiket: '+ticket.ticket+ 'esta siendo llamado por el agente: '+ticket.agenteId.nombre + ' '+ticket.agenteId.apellido)
     }else{
         console.log('Sin acciones');
         res.status(200).json({status:false});
@@ -89,19 +146,21 @@ module.exports.tomarTicket = async (req,res) => {
 };
 
 module.exports.atenderAnular = async (req,res) => {
+    let agente = await Agente.findOneP00(req.session.p00);
     const id = req.body.ticket.length != 0 ? req.body.ticket : 0;
+
     let atencion;
     if (id != 0){
         switch (req.body.accion){
             case 'cerrar':
                 console.log('atendido')
-                atencion = await Cliente.updateOneStatus(id,'atendido');
+                atencion = await Cliente.updateOneStatus(id,'atendido',agente._id);
                 res.status(200).json({status:true});
                 process.emit('atendido',{ticket:true});
             break;
             case 'anular':
                 console.log('anulado')
-                atencion = await Cliente.updateOneStatus(id,'anulado');
+                atencion = await Cliente.updateOneStatus(id,'anulado',agente._id);
                 res.status(200).json({status:true});
                 process.emit('atendido',{ticket:true});
             break;
@@ -120,11 +179,23 @@ module.exports.secuenciaColas = async (req,res) =>{
     res.render('secuenciaColas',{oficina:req.session.oficina,servicios});
     let oficina = await req.session.oficina;
     async function Busqueda(){
+        oficina = req.session.oficina;
         console.log('buscando tickets')
         let clientes = {}
         servicios.forEach(async (element) => {
-            clientes[element._id] = await Cliente.findPrimeroEnCola(element._id);
-            clients[oficina].send(JSON.stringify(clientes))
+            try {
+                clientes[element._id] = await Cliente.findPrimeroEnCola(element._id);
+                console.log('Tickets econtrados: ');
+                //console.log(clients)
+                Object.values(clients).forEach(client =>{
+                    if(client.nombre == 'oficina1'){
+                        client.send(JSON.stringify(clientes))
+                    }
+                })
+                //clients['oficina1'].send(JSON.stringify(clientes))
+            } catch (error) {
+                console.log(error)
+            }
         });
         
     }
@@ -134,6 +205,7 @@ module.exports.secuenciaColas = async (req,res) =>{
     process.on('agente', (item)=>{
         Busqueda();
     })
+
 };
 
 module.exports.siguienteNumero = async (req,res) =>{

@@ -25,3 +25,13 @@
     background-color: rgba(255,89,90,1) !important;
     border-radius: 15px !important;
 }
+
+.img-qr{
+    display: block !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    height: 200px !important;
+    width: auto !important;
+    border-radius: 15px !important;
+ 
+}

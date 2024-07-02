@@ -80,11 +80,18 @@ if(location.pathname === '/secuencia'){
     console.log("Session ID:", id);
     webSocket.onmessage = (event) =>{
       let data = JSON.parse(event.data);
+      //console.log(event.data)
       Object.values(data).forEach((ticket)=>{
          if (ticket != null){
           let show = document.getElementById(ticket.servicio);
+          let blank = document.querySelectorAll('.ticket');
+          //console.log(blank)
+          blank.forEach(item =>{
+            console.log(item)
+            item.innerHTML = '';
+          })
           show.innerHTML = ticket.ticket; 
-        }
+        };
       })
     }
 };
@@ -107,6 +114,7 @@ if(location.pathname === '/agente'){
     console.log(data)
     let button = document.getElementById('agenteButton');
     let a = data != null ? data.ticket : '';
+    console.log('contenido de a: '+a)
     button.innerHTML = 'Atender: '+ a;
     button.value = data != null ? data._id : '';
   }
@@ -150,4 +158,19 @@ async function cerrarAnular(id,opc){
     })
   })
   const jsonResponse = await response.json();
+  console.log(jsonResponse);
+  if (jsonResponse.status){
+    Swal.fire({
+      icon: 'success',
+      title: 'El ticket fue procesado con exito',
+      text: 'Ya puede tomar otro ticket',
+      showConfirmButton: true,
+    }).then(()=>{
+      let atender = document.getElementById('atendido');
+      let anular = document.getElementById('anular');
+      atender.innerHTML = 'Atender:';
+      anular.innerHTML = 'Anular:';
+      //window.location = '/agente'
+    })
+  }
 }
