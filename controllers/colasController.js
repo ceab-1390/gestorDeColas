@@ -189,6 +189,7 @@ module.exports.secuenciaColas = async (req,res) =>{
                 //console.log(clients)
                 Object.values(clients).forEach(client =>{
                     if(client.nombre == 'oficina1'){
+                        console.log('El websocket es: Oficina1')
                         client.send(JSON.stringify(clientes))
                     }
                 })
