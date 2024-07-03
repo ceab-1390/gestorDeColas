@@ -1,33 +1,9 @@
 const {Cliente,Servicios,Agente} = require('../models/models');
 const {bot} = require('./telegram');
 require('dotenv').config()
-const {WebSocket} = require('ws'); 
 
-const socket = new WebSocket.Server({port: process.env.WS_PORT},()=>{
-    console.log('WebSocket start on '+process.env.WS_PORT)
-})
 
-const clients = {};
-const comand = {};
-let clientId; 
 
-socket.on('connection', (ws,req) =>{
-    console.log('Nueva conexion al websocket')
-    ws.on('message', data =>{
-        data = JSON.parse(data);
-        clientId = data.id
-        console.log('Cliente: '+ clientId)
-        clients[clientId] = ws;
-        clients[clientId].nombre = clientId;
-    });
-    ws.onerror = function (err){
-        console.log(err)
-    }
-    ws.on('close', ()=>{
-        delete clients[clientId]
-        console.log('Conexion del cliente ' +clientId+' cerrada');
-    });
-});   
 
 
 module.exports.index = (req,res)=>{
@@ -96,17 +72,11 @@ module.exports.agente = async (req,res) =>{
     let cliente = await Cliente.findPrimeroEnColaAgente();
     res.render('agente',{agente: req.session.agente,cliente});
     async function Busqueda(){
+        let webs = require('./ws');
+        let clientWs = webs.getWs(agente.nombre) 
         try {
             cliente = await Cliente.findPrimeroEnColaAgente();
-            Object.values(clients).forEach(client =>{
-                if(client.nombre == agente.nombre){
-                    console.log('el websocket es: '+agente.nombre);
-                    //console.log(client);
-                    client.send(JSON.stringify(cliente))
-                }
-            })
-            //clients[agente.nombre].send(JSON.stringify(cliente))
-            return cliente 
+            clientWs.send(JSON.stringify(cliente))
         } catch (error) {
             console.log(error);
         }
@@ -174,11 +144,17 @@ module.exports.atenderAnular = async (req,res) => {
 }
 
 module.exports.secuenciaColas = async (req,res) =>{
+    let ws;
+    process.on('oficina-connect',(ws1)=>{
+        ws = ws1
+    })
     const servicios = await Servicios.show();
     req.session.oficina = 'oficina1'
     res.render('secuenciaColas',{oficina:req.session.oficina,servicios});
     let oficina = await req.session.oficina;
     async function Busqueda(){
+        let webs = require('./ws');
+        let clientWs = webs.getWs('oficina1') 
         oficina = req.session.oficina;
         console.log('buscando tickets')
         let clientes = {}
@@ -186,20 +162,14 @@ module.exports.secuenciaColas = async (req,res) =>{
             try {
                 clientes[element._id] = await Cliente.findPrimeroEnCola(element._id);
                 console.log('Tickets econtrados: ');
-                //console.log(clients)
-                Object.values(clients).forEach(client =>{
-                    if(client.nombre == 'oficina1'){
-                        console.log('El websocket es: Oficina1')
-                        client.send(JSON.stringify(clientes))
-                    }
-                })
-                //clients['oficina1'].send(JSON.stringify(clientes))
+                clientWs.send(JSON.stringify(clientes))
             } catch (error) {
                 console.log(error)
             }
         });
         
     }
+  
     process.on('atendido', (item)=>{
         Busqueda();
     })
@@ -213,10 +183,4 @@ module.exports.siguienteNumero = async (req,res) =>{
 
 }
 
-async function sendHola(oficina){
-    while (true){
-        clients[oficina].send('hola')
-        //console.log('hola')
-        await new Promise((resolve, reject) => {setTimeout(() => {resolve()}, 3000);})
-    }
-}
+

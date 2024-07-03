@@ -68,7 +68,7 @@ async function atachCola(n,obj){
 if(location.pathname === '/secuencia'){
     let oficina = document.getElementById('oficina').innerHTML
     console.log(oficina)
-    webSocket = new WebSocket('ws://localhost:3001');
+    webSocket = new WebSocket('ws://localhost:3000/ws');
     const id = oficina
      webSocket.onopen = () =>{
        let data = {};
@@ -80,7 +80,7 @@ if(location.pathname === '/secuencia'){
     console.log("Session ID:", id);
     webSocket.onmessage = (event) =>{
       let data = JSON.parse(event.data);
-      //console.log(event.data)
+      console.log(event.data)
       Object.values(data).forEach((ticket)=>{
          if (ticket != null){
           let show = document.getElementById(ticket.servicio);
@@ -99,12 +99,11 @@ if(location.pathname === '/secuencia'){
 if(location.pathname === '/agente'){
   let agente = document.getElementById('agente').innerHTML
   console.log('ela gente es: '+agente)
-  webSocket = new WebSocket('ws://localhost:3001');
+  webSocket = new WebSocket('ws://localhost:3000/ws');
   const id = agente
    webSocket.onopen = () =>{
      let data = {};
      data.id = id;
-     //data.path = window.location.pathname;
      webSocket.send(JSON.stringify(data));
   }
 

@@ -4,7 +4,11 @@ const app = express();
 const expressLayouts = require('express-ejs-layouts');
 const session = require('express-session');
 const bodyParser = require('body-parser');
+var expressWs = require('express-ws');
+expressWs(app);
+
 const routes = require('./routes/routes');
+
 const port = process.env.HTTP_PORT
 
 app.use(session({
@@ -38,3 +42,4 @@ app.use(routes);
 app.listen(port,()=>{
     console.log('App runing on port: '+port);
 })
+
